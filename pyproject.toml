@@ -1,0 +1,15 @@
+[project]
+name = "face"
+version = "0.1.0"
+description = "Workspace root"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.18.3",
+    "asyncpg>=0.31.0",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+] 
+
+[tool.uv.workspace]
+members = ["app", "script"]    

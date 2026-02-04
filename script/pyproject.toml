@@ -1,0 +1,12 @@
+[project]
+name = "script"
+version = "0.1.0"
+description = "Script-based FastAPI App"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.128.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

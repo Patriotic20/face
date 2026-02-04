@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres_face
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: face
+    ports:
+      - "5439:5432"
+    volumes:
+      - postgres_data_face:/var/lib/postgresql/data
+
+volumes:
+  postgres_data_face:  
