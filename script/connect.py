@@ -3,22 +3,24 @@ import httpx
 import os
 from datetime import datetime
 import json
-import traceback
 from config.schemas import Event
-from script.save_user_log import save_log
+from config.db_helper import db_helper
+from app.modules.camera.model import Camera
 import logging
+from sqlalchemy import update
 
 logger = logging.getLogger(__name__)
 
 
 class HikiVisionConnection:
-    def __init__(self, device_ip: str , username:str, password:str ,camera_type: str):
+    def __init__(self, device_ip: str , username:str, password:str ,camera_type: str, camera_id: int):
         self.device_ip = device_ip
         self.username = username
         self.password = password
         self.url = f"http://{self.device_ip}/ISAPI/Event/notification/alertStream?format=json"
         self.boundary = b"--MIME_boundary"
         self.camera_type = camera_type
+        self.camera_id = camera_id
         
 
     async def connection_stream(self):
@@ -29,9 +31,11 @@ class HikiVisionConnection:
             async with client.stream("GET", self.url, auth=auth) as response:
                 if response.status_code != 200:
                     logger.error(f"Failed to connect: {response.status_code}")
+                    await self.update_camera_status(False)
                     return
 
                 logger.info(f"Connected to {self.device_ip}. Waiting for events...")
+                await self.update_camera_status(True)
 
                 buffer = b""
                 async for chunk in response.aiter_bytes():
@@ -71,6 +75,7 @@ class HikiVisionConnection:
             try:
                 json_data = json.loads(content.decode(errors="ignore"))
                 event_type = json_data.get("eventType")
+                ip_address = json_data.get("ipAddress")
                 dt = json_data.get("dateTime")
 
                 if event_type == "AccessControllerEvent":
@@ -83,9 +88,14 @@ class HikiVisionConnection:
                         event = Event(
                             user_id=person, 
                             time=dt,
-                            camera_type=self.camera_type
+                            camera_type=self.camera_type,
+                            ip_address=ip_address
                             )
-                        await save_log(event=event)
+                        # Instead of calling save_log directly, use repo
+                        async with db_helper.session_factory() as session:
+                            repo = UserLogsRepository(session)
+                            await repo.save_log(event=event)
+                        
                         logger.info(f"Published AccessControllerEvent: {event.model_dump()}, data: {json_data}")
 
                 elif event_type == "Non-AccessControllerEvent":
@@ -112,9 +122,26 @@ class HikiVisionConnection:
                     await self.process_part(part)
             except (httpx.ConnectError, httpx.ReadError) as e:
                 logger.error(f"Connection to {self.device_ip} failed: {e}")
+                await self.update_camera_status(False)
                 logger.info(f"Retrying connection in 30 seconds...")
                 await asyncio.sleep(30)
             except Exception as e:
                 logger.error(f"Unhandled streaming error from {self.device_ip}: {e}", exc_info=True)
+                await self.update_camera_status(False)
                 logger.info(f"Retrying connection in 30 seconds...")
                 await asyncio.sleep(30)
+
+    async def update_camera_status(self, status: bool):
+        """Update camera status in the database."""
+        try:
+            async with db_helper.session_factory() as session:
+                stmt = (
+                    update(Camera)
+                    .where(Camera.id == self.camera_id)
+                    .values(status=status)
+                )
+                await session.execute(stmt)
+                await session.commit()
+                # logger.info(f"Updated camera {self.device_ip} status to {status}")
+        except Exception as e:
+            logger.error(f"Failed to update camera status for {self.device_ip}: {e}")

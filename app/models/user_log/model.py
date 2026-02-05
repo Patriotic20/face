@@ -6,14 +6,18 @@ from datetime import datetime
 from typing import Optional, TYPE_CHECKING
 
 
+
 if TYPE_CHECKING:
     from app.models.user.model import User
+    from app.models.camera.model import Camera
 
 class UserLogs(Base):
+
     __tablename__ = "user_logs"
     
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    camera_id: Mapped[int] = mapped_column(ForeignKey("cameras.id", ondelete="CASCADE"))
     
     # Defaults to the current time when the row is created
     enter_time: Mapped[Optional[datetime]] 
@@ -22,6 +26,12 @@ class UserLogs(Base):
     # Relationship back to user
     user: Mapped["User"] = relationship(
         "User",
+        back_populates="logs"
+    )
+
+
+    camera: Mapped["Camera"] = relationship(
+        "Camera",
         back_populates="logs"
     )
     

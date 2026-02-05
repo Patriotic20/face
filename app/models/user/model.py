@@ -1,11 +1,11 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String
 from typing import Optional, List, TYPE_CHECKING
-from app.models.base import Base
+from ..base import Base
 
 
 if TYPE_CHECKING:
-    from app.models.user_logs.model import UserLogs
+    from app.modules.user_logs.model import UserLogs
 
 class User(Base):
     __tablename__ = "users"

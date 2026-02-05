@@ -21,4 +21,6 @@ class UserView(ModelView, model=User):
     icon = "fa-solid fa-user"
     
     # Allows viewing logs directly from user page
-    column_details_exclude_list = [User.image_path]
+    # column_details_exclude_list = [User.image_path]
+
+    # column_exclude_list = ["logs"]

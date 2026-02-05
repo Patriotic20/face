@@ -26,6 +26,11 @@ class DatabaseConfig(BaseModel):
         "pk": "pk_%(table_name)s",
     }
 
+class AppConfig(BaseModel):
+    host: str
+    port: int
+    app_path: str
+
 class AppSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -36,5 +41,6 @@ class AppSettings(BaseSettings):
 
     hikvision: HikvisionConfig
     database: DatabaseConfig
+    app: AppConfig
 
 settings = AppSettings()

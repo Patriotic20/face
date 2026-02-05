@@ -5,6 +5,7 @@ class Event(BaseModel):
     user_id: str | None = None
     time: datetime
     camera_type: str
+    ip_address: str | None = None
 
 class EnterEvent(BaseModel):
     user_id: str | None = None

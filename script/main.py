@@ -5,57 +5,36 @@ import os
 # Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from config.config import settings
 from script.connect import HikiVisionConnection
-
-CAMERAS = [
-    {
-        "device_ip": "192.168.88.101",
-        "username": settings.hikvision.username,
-        "password": settings.hikvision.password,
-        "camera_type": "enter"
-    },
-    {
-        "device_ip": "192.168.88.102",
-        "username": settings.hikvision.username,
-        "password": settings.hikvision.password,
-        "camera_type": "exit"
-    },
-    {
-        "device_ip": "192.168.88.103",
-        "username": settings.hikvision.username,
-        "password": settings.hikvision.password,
-        "camera_type": "enter"
-    },
-    {
-        "device_ip": "192.168.88.104",
-        "username": settings.hikvision.username,
-        "password": settings.hikvision.password,
-        "camera_type": "exit"
-    },
-    {
-        "device_ip": "192.168.88.105",
-        "username": settings.hikvision.username,
-        "password": settings.hikvision.password,
-        "camera_type": "enter"
-    },
-    {
-        "device_ip": "192.168.88.106",
-        "username": settings.hikvision.username,
-        "password": settings.hikvision.password,
-        "camera_type": "exit"
-    }
-]
+from config.db_helper import db_helper
+from app.modules.camera.model import Camera
+from sqlalchemy import select
 
 async def main():
+    async with db_helper.session_factory() as session:
+        stmt = select(Camera)
+        result = await session.execute(stmt)
+        cameras = result.scalars().all()
+
+    if not cameras:
+        print("No cameras found in database.")
+        return
+
     tasks = []
-    print(f"Starting connection to {len(CAMERAS)} cameras...")
-    for cam_conf in CAMERAS:
+    print(f"Starting connection to {len(cameras)} cameras...")
+    for cam in cameras:
+        # Assuming username/password logic:
+        # If camera has credentials in DB, use them. 
+        # But connect.py logic in prev version used settings.hikvision.username 
+        # if the dict relied on it. BUT Camera model has username/password cols.
+        # We should use what is in the model.
+        
         conn = HikiVisionConnection(
-            device_ip=cam_conf["device_ip"],
-            username=cam_conf["username"],
-            password=cam_conf["password"],
-            camera_type=cam_conf["camera_type"]
+            device_ip=cam.device_ip,
+            username=cam.username,
+            password=cam.password,
+            camera_type=cam.camera_type,
+            camera_id=cam.id
         )
         tasks.append(asyncio.create_task(conn.stream_events()))
     
