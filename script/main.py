@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from script.connect import HikiVisionConnection
 from config.db_helper import db_helper
-from app.modules.camera.model import Camera
+from app.models.camera.model import Camera
 from sqlalchemy import select
 
 async def main():

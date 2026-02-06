@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String
+from sqlalchemy import String, Boolean
 from typing import Optional, List, TYPE_CHECKING
 from ..base import Base
 
@@ -16,6 +16,7 @@ class User(Base):
     middle_name: Mapped[Optional[str]] = mapped_column(String(50)) 
     image_path: Mapped[Optional[str]] = mapped_column(String(255))
     passport_serial: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    status: Mapped[bool] = mapped_column(Boolean, default=None, nullable=True)
 
     # Relationship to logs
     logs: Mapped[List["UserLogs"]] = relationship(

@@ -10,7 +10,7 @@ class UserLogsView(ModelView, model=UserLogs):
         UserLogs.exit_time
     ]
     # Filter logs by specific user or dates
-    column_filters = [UserLogs.user_id, UserLogs.enter_time]
+    # column_filters = [UserLogs.user_id, UserLogs.enter_time]
     
     name = "Access Log"
     name_plural = "Access Logs"

@@ -5,7 +5,7 @@ from datetime import datetime
 import json
 from config.schemas import Event
 from config.db_helper import db_helper
-from app.modules.camera.model import Camera
+from app.models.camera.model import Camera
 import logging
 from sqlalchemy import update
 
