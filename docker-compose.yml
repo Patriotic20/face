@@ -1,4 +1,18 @@
 services:
+  app:
+    build: .
+    container_name: face_app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/face
+      - ./static:/face/static
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+      
   postgres:
     image: postgres:17
     container_name: postgres_face
@@ -10,6 +24,12 @@ services:
       - "5439:5432"
     volumes:
       - postgres_data_face:/var/lib/postgresql/data
-
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d face"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+      
 volumes:
-  postgres_data_face:  
+  postgres_data_face:
